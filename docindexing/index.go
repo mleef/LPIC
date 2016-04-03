@@ -51,11 +51,12 @@ func (ind *InvertedIndex) AddTerm(term string) {
 // Adds new document entry to given term entry
 func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry) {
 	// Make sure term is in index
-	if _, found := ind.Terms[term]; found {
-		ind.Terms[term].EntryLock.Lock()
-		ind.Terms[term].Frequency += document.Frequency
-		ind.Terms[term].Documents.PushBack(document)
-		ind.Terms[term].EntryLock.Unlock()
-		runtime.Gosched()
-	}
+	ind.AddTerm(term)
+	
+	// Safely add document to term list
+	ind.Terms[term].EntryLock.Lock()
+	ind.Terms[term].Frequency += document.Frequency
+	ind.Terms[term].Documents.PushBack(document)
+	ind.Terms[term].EntryLock.Unlock()
+	runtime.Gosched()
 }
