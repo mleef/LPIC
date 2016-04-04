@@ -200,7 +200,7 @@ func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner) {
     }
 
 	// Read file line by line
-    scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(file)
 
 	// Get file metadata 
 	fileInfo, err := file.Stat()
@@ -256,8 +256,8 @@ func format(words []string) []string {
         panic(err)
     }
     
-    // To store formatted strings
-	newWords := make([]string, 0)
+	// To store formatted strings
+    newWords := make([]string, 0)
 	
 	for _, word := range words {
 		// Check if a stop word
