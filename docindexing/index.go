@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"sync"
 	"runtime"
+	"log"
 )
 
 // Highest level inverted index structure
@@ -26,7 +27,7 @@ type TermEntry struct {
 type DocumentEntry struct {
 	Name string
 	Path string
-	Size int
+	Size int64
 	Frequency int
 	Positions *list.List
 }
@@ -41,6 +42,7 @@ func (ind *InvertedIndex) AddTerm(term string) {
 	ind.IndexLock.Lock()
 	// Make sure we aren't overwriting existing term
 	if _, found := ind.Terms[term]; !found {
+		log.Printf("Adding new term %s to index", term)
 		ind.Terms[term] = &TermEntry{Term: term, Frequency: 0, Documents: list.New(), EntryLock: &sync.Mutex{}}
 		ind.TermCount++;
 	}
@@ -52,7 +54,7 @@ func (ind *InvertedIndex) AddTerm(term string) {
 func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry) {
 	// Make sure term is in index
 	ind.AddTerm(term)
-	
+	log.Printf("Adding new document to term %s's document list", term)
 	// Safely add document to term list
 	ind.Terms[term].EntryLock.Lock()
 	ind.Terms[term].Frequency += document.Frequency
