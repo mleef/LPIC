@@ -294,7 +294,7 @@ func formatTerms(words []string) []string {
     }
     
   // To store formatted strings
-    newWords := make([]string, 0)
+  newWords := make([]string, 0)
   
   for _, word := range words {
     // Check if a stop word
