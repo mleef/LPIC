@@ -3,12 +3,22 @@ package docindexing
 import (
     "bufio"
     "log"
+    "errors"
     "os"
     "strings"
     "regexp"
     "container/list"
     "unicode"
 )
+
+var supportedExtensions = map[string]int{
+  "txt" : 0,
+  "py" : 0,
+  "c" : 0,
+  "cpp" : 0,
+  "go" : 0,
+  "java" : 0,
+}
 
 // List of stop words to ignore when parsing
 var stopWords = map[string]int{
@@ -187,17 +197,12 @@ var stopWords = map[string]int{
 }
 
 // Validates and opens file, returns a scanner to read file
-func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner) {
-  // Check that path points to .txt file
-  if !strings.HasSuffix(path, ".txt") {
-    panic("Not a valid .txt file")
-  }
-
+func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner, error) {
   // Open file
   file, err := os.Open(path)
-    if err != nil {
-        panic(err)
-    }
+  if err != nil {
+    return nil, nil, nil, err
+  }
 
   // Read file line by line
   scanner := bufio.NewScanner(file)
@@ -205,22 +210,31 @@ func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner) {
   // Get file metadata 
   fileInfo, err := file.Stat()
   if err != nil {
-    panic(err)
+    return nil, nil, nil, err
   }
 
-  return file, fileInfo, scanner
+  // Validate file type
+  if valid, err := validFile(path, fileInfo); !valid {
+    return nil, nil, nil, err
+  }
+  
+  return file, fileInfo, scanner, nil
 }
 
 // Reads file line by line
-func ReadFile(path string) map[string]*DocumentEntry {
+func ReadFile(path string) (map[string]*DocumentEntry, error) {
   log.Printf("Working on file %s", path)
   // Open file for reading
-  file, fileInfo, scanner := OpenFile(path)
+  file, fileInfo, scanner, err := OpenFile(path)
   defer file.Close()
   
+  // Something went wrong in opening the file
+  if err != nil {
+    return nil, err
+  }
+  
   // Get file metadata
-  pathSplit := strings.Split(path, "/")
-  fileName := pathSplit[len(pathSplit) - 1]
+  fileName := fileInfo.Name()
   fileSize := fileInfo.Size()
   
   // To store resulting term frequencies
@@ -229,8 +243,8 @@ func ReadFile(path string) map[string]*DocumentEntry {
 
   // Format each line and then update frequencies
   for scanner.Scan() {
-    line := format(strings.Fields(scanner.Text()))
-    for _, term := range line {
+    terms := formatTerms(strings.Fields(scanner.Text()))
+    for _, term := range terms {
       if _, present := termCounts[term]; !present {
         termCounts[term] = &DocumentEntry{fileName, path, fileSize, 0, list.New()}
       } else {
@@ -243,14 +257,37 @@ func ReadFile(path string) map[string]*DocumentEntry {
   
   // Make sure the scanner didn't fail
   if err := scanner.Err(); err != nil {
-        panic(err)
-    }
+    return termCounts, err
+  }
 
-  return termCounts
+  return termCounts, nil
+}
+
+// Validates that file is parseable
+func validFile(path string, fileInfo os.FileInfo) (bool, error) {
+  
+  // Check for regular file
+  if fileInfo.IsDir() {
+      return false, errors.New("Cannot parse directory")
+  }
+
+  // Get file extension
+  pathSplit := strings.Split(path, ".")
+  if len(pathSplit) == 0 {
+    return false, errors.New("File has no extension")
+  }
+  
+  // Check that file type is supported
+  extension := pathSplit[len(pathSplit) - 1]
+  if _,present := supportedExtensions[extension]; !present {
+    return false, errors.New("Unsupported file type")
+  }
+  
+  return true, nil
 }
 
 // Formats words for term construction
-func format(words []string) []string {
+func formatTerms(words []string) []string {
     reg, err := regexp.Compile("[^A-Za-z]+")
     if err != nil {
         panic(err)

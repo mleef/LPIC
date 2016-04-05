@@ -10,8 +10,12 @@ func main() {
   ind.AddTerm("john")
   ind.AddTerm("aaron")
   
-  terms := docindexing.ReadFile(os.Args[1])
-  for key, val := range terms {
-    fmt.Printf("%s : %d\n", key, val.Frequency)
+  terms, err := docindexing.ReadFile(os.Args[1])
+  if err != nil {
+    fmt.Println(err)
+  } else {
+    for key, val := range terms {
+      fmt.Printf("%s : %d\n", key, val.Frequency)
+    }
   }
 }
