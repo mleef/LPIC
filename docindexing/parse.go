@@ -12,6 +12,14 @@ import (
 
 var supportedExtensions = map[string]int{
 	"txt":  0,
+	"hum":  0,
+	"pro":  0,
+	"oct":  0,
+	"phk":  0,
+	"omn":  0,
+	"tdk":  0,
+	"asc":  0,
+	"js":   0,
 	"py":   0,
 	"c":    0,
 	"cpp":  0,
@@ -221,7 +229,7 @@ func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner, error) {
 }
 
 // Reads file line by line
-func ReadFile(path string, docID int64) (map[string]*DocumentEntry, error) {
+func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry, error) {
 	//log.Printf("Working on file %s", path)
 	// Open file for reading
 	file, fileInfo, scanner, err := OpenFile(path)

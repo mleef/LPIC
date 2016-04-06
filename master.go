@@ -4,12 +4,21 @@ import (
 	"fmt"
 	"github.com/mleef/lpic/docindexing"
 	"github.com/mleef/lpic/worker"
-	"os"
+	"runtime"
 	"sync"
 	"time"
+	"flag"
 )
 
 func main() {
+    var numWorkers = flag.Int("num-workers", runtime.GOMAXPROCS(runtime.NumCPU()), "number of worker threads")
+    var verboseOutput = flag.Bool("verbose", false, "print verbose progress")
+    var outputDir = flag.String("out-dir", ".", "destination directory for constructed index")
+    var outputFile = flag.String("out-file", "index.json", "file name of constructed index")
+
+
+	flag.Parse()
+	
 	var wg sync.WaitGroup
 	// Initialize needed structures
 	fmt.Println("Initializing index and document pool...")
@@ -17,27 +26,19 @@ func main() {
 	documentPool := make(chan *docindexing.Data)
 
 	// Get search starting point from args
-	searchPath := os.Args[1]
+	searchPath := flag.Args()[0]
 
 	// Commence crawling and index construction
 	fmt.Println("Beginning crawl and index construction...")
-	go worker.SpawnWorkers(documentPool, ind, &wg)
-	go docindexing.CrawlFileSystem(documentPool, searchPath, &wg)
+	go worker.SpawnWorkers(documentPool, *numWorkers, ind, &wg, *verboseOutput)
+	go docindexing.CrawlFileSystem(documentPool, searchPath, &wg, *verboseOutput)
 
 	// Allow goroutines to start
 	time.Sleep(100 * time.Millisecond)
 
 	// Wait until all goroutines finish
 	wg.Wait()
-
-	// Print index
-	fmt.Printf("# Terms: %d\n", ind.TermCount)
-	for term, termEntry := range ind.Terms {
-		fmt.Printf("Term: %s, Collection Frequency: %d\n", term, termEntry.Frequency)
-		for _, docEntry := range termEntry.Documents {
-			fmt.Printf("Document Name: %s, Document ID: %d, Document Frequency: %d\n", docEntry.Name, docEntry.ID, docEntry.Frequency)
-		}
-		fmt.Println()
-	}
+	
+	docindexing.WriteOutput(*outputDir + *outputFile, ind)
 
 }

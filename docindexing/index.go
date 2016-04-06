@@ -1,7 +1,7 @@
 package docindexing
 
 import (
-	//"log"
+	"log"
 	"runtime"
 	"sync"
 )
@@ -9,7 +9,7 @@ import (
 // Highest level inverted index structure
 type InvertedIndex struct {
 	Terms     map[string]*TermEntry
-	TermCount int
+	TermCount int64
 	IndexLock *sync.Mutex
 }
 
@@ -33,15 +33,17 @@ type DocumentEntry struct {
 
 // Constructs new inverted index
 func NewIndex() *InvertedIndex {
-	return &InvertedIndex{Terms: make(map[string]*TermEntry), TermCount: 0, IndexLock: &sync.Mutex{}}
+	return &InvertedIndex{Terms: make(map[string]*TermEntry), TermCount: int64(0), IndexLock: &sync.Mutex{}}
 }
 
 // Adds new term entry to the index
-func (ind *InvertedIndex) AddTerm(term string) {
+func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
 	ind.IndexLock.Lock()
 	// Make sure we aren't overwriting existing term
 	if _, found := ind.Terms[term]; !found {
-		//log.Printf("Adding new term %s to index", term)
+		if verbose {
+			log.Printf("Adding new term %s to index", term)
+		}
 		ind.Terms[term] = &TermEntry{Term: term, Frequency: 0, Documents: make([]*DocumentEntry, 0), EntryLock: &sync.Mutex{}}
 		ind.TermCount++
 	}
@@ -50,10 +52,12 @@ func (ind *InvertedIndex) AddTerm(term string) {
 }
 
 // Adds new document entry to given term entry
-func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry) {
+func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verbose bool) {
 	// Make sure term is in index
-	ind.AddTerm(term)
-	//log.Printf("Adding new document to term %s's document list", term)
+	ind.AddTerm(term, verbose)
+	if verbose {
+		log.Printf("Adding new document to term %s's document list", term)
+	}
 	// Safely add document to term list
 	ind.Terms[term].EntryLock.Lock()
 	ind.Terms[term].Frequency += document.Frequency

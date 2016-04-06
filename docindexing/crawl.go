@@ -3,7 +3,7 @@ package docindexing
 import (
 	"os"
 	"path/filepath"
-	//"fmt"
+	"log"
 	"sync"
 )
 
@@ -14,7 +14,7 @@ type Data struct {
 }
 
 // Crawl the file system and add data to the work queue
-func CrawlFileSystem(workQueue chan *Data, root string, wg *sync.WaitGroup) {
+func CrawlFileSystem(workQueue chan *Data, root string, wg *sync.WaitGroup, verbose bool) {
 	wg.Add(1)
 	defer wg.Done()
 	ID := int64(0)
@@ -26,8 +26,8 @@ func CrawlFileSystem(workQueue chan *Data, root string, wg *sync.WaitGroup) {
 		return err
 	})
 
-	if err != nil {
-		//fmt.Printf("crawl error: %s", err)
+	if err != nil && verbose {
+		log.Printf("crawl error: %s", err)
 	}
 
 	close(workQueue)

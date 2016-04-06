@@ -1,43 +1,46 @@
 package worker
 
 import (
-	//"fmt"
+	"log"
 	"github.com/mleef/lpic/docindexing"
-	"runtime"
 	"sync"
 )
 
 // Determines degree of multi-threading and creates workers
-func SpawnWorkers(workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup) {
-	ncpu := runtime.NumCPU()
-	runtime.GOMAXPROCS(ncpu) //max # of threads that can be running
+func SpawnWorkers(workQueue chan *docindexing.Data, numWorkers int, ind *docindexing.InvertedIndex, wg *sync.WaitGroup, verbose bool) {
 
 	// spawn workers
-	for i := 0; i < ncpu; i++ {
+	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
-		//fmt.Printf("Spawning worker %d...\n", i)
-		go Worker(i, workQueue, ind, wg)
+		if verbose {
+			log.Printf("Spawning worker %d...\n", i)
+		}
+		go Worker(i, workQueue, ind, wg, verbose)
 	}
 }
 
 // Parses documents and updates index
-func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup) {
+func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup, verbose bool) {
 	defer wg.Done()
 
 	// While channel is open consume data
 	for data := range workQueue {
-		//fmt.Printf("worker #%d: item %v\n", id, *data)
-
+		if verbose {
+			log.Printf("worker #%d: item %s\n", id, data.Document)
+		}
+		
 		// Parse file and check for errors
-		result, err := docindexing.ReadFile(data.Document, data.ID)
+		result, err := docindexing.ReadFile(data.Document, data.ID, verbose)
 		if err != nil {
-			//fmt.Printf("worker #%d error: %s\n", id, err)
+			if verbose {
+				log.Printf("worker #%d error: %s\n", id, err)
+			}
 			continue
 		}
 
 		// File parsing was successful so update index
 		for term, doc := range result {
-			ind.AddDocument(term, doc)
+			ind.AddDocument(term, doc, verbose)
 		}
 	}
 }
