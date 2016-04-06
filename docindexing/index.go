@@ -15,7 +15,6 @@ type InvertedIndex struct {
 
 // Stores terms and their respective document entries
 type TermEntry struct {
-	Term      string
 	Frequency int
 	Documents []*DocumentEntry
 	EntryLock *sync.Mutex
@@ -23,12 +22,10 @@ type TermEntry struct {
 
 // Stores document metadata as well as additional term information
 type DocumentEntry struct {
-	Name      string
 	Path      string
 	ID        int64
-	Size      int64
 	Frequency int
-	Positions []int64
+	Positions []int
 }
 
 // Constructs new inverted index
@@ -44,7 +41,7 @@ func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
 		if verbose {
 			log.Printf("Adding new term %s to index", term)
 		}
-		ind.Terms[term] = &TermEntry{Term: term, Frequency: 0, Documents: make([]*DocumentEntry, 0), EntryLock: &sync.Mutex{}}
+		ind.Terms[term] = &TermEntry{Frequency: 0, Documents: make([]*DocumentEntry, 0), EntryLock: &sync.Mutex{}}
 		ind.TermCount++
 	}
 	ind.IndexLock.Unlock()
@@ -56,7 +53,7 @@ func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verb
 	// Make sure term is in index
 	ind.AddTerm(term, verbose)
 	if verbose {
-		log.Printf("Adding new document to term %s's document list", term)
+		log.Printf("Adding new document %s to term %s's document list", document.Path, term)
 	}
 	// Safely add document to term list
 	ind.Terms[term].EntryLock.Lock()

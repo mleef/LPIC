@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"github.com/mleef/lpic/docindexing"
 	"github.com/mleef/lpic/worker"
 	"runtime"
@@ -24,15 +24,18 @@ func main() {
 	var wg sync.WaitGroup
 	
 	// Initialize needed structures
-	fmt.Println("Initializing index and document pool...")
+	log.Println("Initializing index and document pool...")
 	ind := docindexing.NewIndex()
 	documentPool := make(chan *docindexing.Data)
 
 	// Get search starting point from args
 	searchPath := flag.Args()[0]
 
+	// Start timing
+	start := time.Now()
+
 	// Commence crawling and index construction
-	fmt.Println("Beginning crawl and index construction...")
+	log.Println("Beginning crawl and index construction...")
 	go worker.SpawnWorkers(documentPool, *numWorkers, ind, &wg, *verboseOutput)
 	go docindexing.CrawlFileSystem(documentPool, searchPath, &wg, *verboseOutput)
 
@@ -41,6 +44,9 @@ func main() {
 
 	// Wait until all goroutines finish
 	wg.Wait()
+	
+	// Calculate time elapsed
+	log.Printf("Finished building index in %s", time.Since(start))
 	
 	// Write index to file in JSON format
 	docindexing.WriteOutput(*outputDir + *outputFile, ind)

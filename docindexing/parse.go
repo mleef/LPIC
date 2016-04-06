@@ -204,11 +204,11 @@ var stopWords = map[string]int{
 }
 
 // Validates and opens file, returns a scanner to read file
-func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner, error) {
+func OpenFile(path string) (*os.File, *bufio.Scanner, error) {
 	// Open file
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// Read file line by line
@@ -217,22 +217,22 @@ func OpenFile(path string) (*os.File, os.FileInfo, *bufio.Scanner, error) {
 	// Get file metadata
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// Validate file type
 	if valid, err := validFile(path, fileInfo); !valid {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	return file, fileInfo, scanner, nil
+	return file, scanner, nil
 }
 
 // Reads file line by line
 func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry, error) {
 	//log.Printf("Working on file %s", path)
 	// Open file for reading
-	file, fileInfo, scanner, err := OpenFile(path)
+	file, scanner, err := OpenFile(path)
 	defer file.Close()
 
 	// Something went wrong in opening the file
@@ -240,22 +240,18 @@ func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry
 		return nil, err
 	}
 
-	// Get file metadata
-	fileName := fileInfo.Name()
-	fileSize := fileInfo.Size()
-
 	// To store resulting term frequencies
 	termCounts := make(map[string]*DocumentEntry)
-	position := int64(0)
+	position := 0
 
 	// Format each line and then update frequencies
 	for scanner.Scan() {
 		terms := formatTerms(strings.Fields(scanner.Text()))
 		for _, term := range terms {
 			if _, present := termCounts[term]; !present {
-				positions := make([]int64, 0)
+				positions := make([]int, 0)
 				positions = append(positions, position)
-				termCounts[term] = &DocumentEntry{fileName, path, docID, fileSize, 1, positions}
+				termCounts[term] = &DocumentEntry{path, docID, 1, positions}
 			} else {
 				termCounts[term].Frequency++
 				termCounts[term].Positions = append(termCounts[term].Positions, position)

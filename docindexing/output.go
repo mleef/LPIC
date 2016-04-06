@@ -15,6 +15,7 @@ func WriteOutput(filePath string, ind *InvertedIndex) {
     	log.Printf("error writing file: %s", err)
     } else {
     	defer f.Close()
+    	log.Printf("Writing output file %s", filePath)
     	f.WriteString(toJson(ind))
     }
 
@@ -31,7 +32,6 @@ func toJson(ind *InvertedIndex) string {
 		for numDoc, docEntry := range termEntry.Documents {
 			buffer.WriteString("\t\t\t{\n")
 			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "id", docEntry.ID))
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %q,\n", "name", docEntry.Name))
 			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %q,\n", "path", docEntry.Path))
 			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "frequency", docEntry.Frequency))
 			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : [\n", "positions"))
