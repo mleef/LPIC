@@ -1,80 +1,43 @@
-package main
+package worker
 
 import (
-
-		"fmt"
+		//"fmt"
 		"runtime"
+		"sync"
+		"github.com/mleef/lpic/docindexing"
+)
 
-		)
-
-type Data struct {
-	Document string
-}
-
-func main() {
-	var data = []Data{
-			  		Data{
-			  				"doc1",
-			  		},
-			  		Data{
-			  				"doc2",
-			  		},
-			  		Data{
-			  				"doc3",
-			  		},
-			  		Data{
-			  				"doc4",
-			  		},
-			  		Data{
-			  				"doc5",
-			  		},
-			  		Data{
-			  				"doc6",
-			  		},
-				}
-
-	Master(data)
-}
-
-func Master(work []Data) {
+// Determines degree of multi-threading and creates workers
+func SpawnWorkers(workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup) {
     ncpu := runtime.NumCPU()
-    if len(work) < ncpu {
-        ncpu = len(work)
-    }
     runtime.GOMAXPROCS(ncpu) //max # of threads that can be running
-
-    queue := make(chan *Data)
 
     // spawn workers
     for i := 0; i < ncpu; i++ {
-        go Worker(i, queue)
+        wg.Add(1)
+    	//fmt.Printf("Spawning worker %d...\n", i)
+        go Worker(i, workQueue, ind, wg)
     }
-
-    // master: give work
-    for i, item := range(work) {
-        fmt.Printf("master: give work %v\n", item)
-        queue <- &work[i] 
-    }
-
-    // all work is done
-    // signal workers there is no more work
-    for n := 0; n < ncpu; n++ {
-        queue <- nil
-    }
- 
-    close(queue)
-
 }
 
-func Worker(id int, queue chan *Data) {
-    var data *Data
-    for {
-        data = <-queue
-        if data == nil {
-            break
-        }
-        fmt.Printf("worker #%d: item %v\n", id, *data)
+// Parses documents and updates index
+func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup) {
+	defer wg.Done()
+	
+	// While channel is open consume data
+    for data := range workQueue {
+        //fmt.Printf("worker #%d: item %v\n", id, *data)
 
-        //processData(data)
+        // Parse file and check for errors
+		result, err := docindexing.ReadFile(data.Document, data.ID)
+		if err != nil {
+			//fmt.Printf("worker #%d error: %s\n", id, err)
+			continue
+		}
+		
+		// File parsing was successful so update index
+		for term, doc := range result {
+			ind.AddDocument(term, doc)
+		} 
     }
 }

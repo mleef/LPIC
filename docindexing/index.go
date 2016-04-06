@@ -1,8 +1,7 @@
 package docindexing
 
 import (
-	"container/list"
-	"log"
+	//"log"
 	"runtime"
 	"sync"
 )
@@ -18,7 +17,7 @@ type InvertedIndex struct {
 type TermEntry struct {
 	Term      string
 	Frequency int
-	Documents *list.List
+	Documents []*DocumentEntry
 	EntryLock *sync.Mutex
 }
 
@@ -26,9 +25,10 @@ type TermEntry struct {
 type DocumentEntry struct {
 	Name      string
 	Path      string
+	ID        int64
 	Size      int64
 	Frequency int
-	Positions *list.List
+	Positions []int64
 }
 
 // Constructs new inverted index
@@ -41,8 +41,8 @@ func (ind *InvertedIndex) AddTerm(term string) {
 	ind.IndexLock.Lock()
 	// Make sure we aren't overwriting existing term
 	if _, found := ind.Terms[term]; !found {
-		log.Printf("Adding new term %s to index", term)
-		ind.Terms[term] = &TermEntry{Term: term, Frequency: 0, Documents: list.New(), EntryLock: &sync.Mutex{}}
+		//log.Printf("Adding new term %s to index", term)
+		ind.Terms[term] = &TermEntry{Term: term, Frequency: 0, Documents: make([]*DocumentEntry, 0), EntryLock: &sync.Mutex{}}
 		ind.TermCount++
 	}
 	ind.IndexLock.Unlock()
@@ -53,11 +53,11 @@ func (ind *InvertedIndex) AddTerm(term string) {
 func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry) {
 	// Make sure term is in index
 	ind.AddTerm(term)
-	log.Printf("Adding new document to term %s's document list", term)
+	//log.Printf("Adding new document to term %s's document list", term)
 	// Safely add document to term list
 	ind.Terms[term].EntryLock.Lock()
 	ind.Terms[term].Frequency += document.Frequency
-	ind.Terms[term].Documents.PushBack(document)
+	ind.Terms[term].Documents = append(ind.Terms[term].Documents, document)
 	ind.Terms[term].EntryLock.Unlock()
 	runtime.Gosched()
 }
