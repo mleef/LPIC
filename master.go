@@ -11,15 +11,18 @@ import (
 )
 
 func main() {
+	// Optional flags and defaults
     var numWorkers = flag.Int("num-workers", runtime.GOMAXPROCS(runtime.NumCPU()), "number of worker threads")
     var verboseOutput = flag.Bool("verbose", false, "print verbose progress")
-    var outputDir = flag.String("out-dir", ".", "destination directory for constructed index")
+    var outputDir = flag.String("out-dir", "./", "destination directory for constructed index")
     var outputFile = flag.String("out-file", "index.json", "file name of constructed index")
 
-
+	// Get flags
 	flag.Parse()
 	
+	// To wait on go routines
 	var wg sync.WaitGroup
+	
 	// Initialize needed structures
 	fmt.Println("Initializing index and document pool...")
 	ind := docindexing.NewIndex()
@@ -39,6 +42,7 @@ func main() {
 	// Wait until all goroutines finish
 	wg.Wait()
 	
+	// Write index to file in JSON format
 	docindexing.WriteOutput(*outputDir + *outputFile, ind)
 
 }

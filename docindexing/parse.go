@@ -253,7 +253,9 @@ func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry
 		terms := formatTerms(strings.Fields(scanner.Text()))
 		for _, term := range terms {
 			if _, present := termCounts[term]; !present {
-				termCounts[term] = &DocumentEntry{fileName, path, docID, fileSize, 1, make([]int64, 0)}
+				positions := make([]int64, 0)
+				positions = append(positions, position)
+				termCounts[term] = &DocumentEntry{fileName, path, docID, fileSize, 1, positions}
 			} else {
 				termCounts[term].Frequency++
 				termCounts[term].Positions = append(termCounts[term].Positions, position)
