@@ -22,7 +22,8 @@ func SpawnWorkers(workQueue chan *docindexing.Data, numWorkers int, ind *docinde
 // Parses documents and updates index
 func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedIndex, wg *sync.WaitGroup, verbose bool) {
 	defer wg.Done()
-
+	documentsIndexed := 0
+	
 	// While channel is open consume data
 	for data := range workQueue {
 		if verbose {
@@ -38,9 +39,14 @@ func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedI
 			continue
 		}
 
+		// Increment work count
+		documentsIndexed++
+
 		// File parsing was successful so update index
 		for term, doc := range result {
 			ind.AddDocument(term, doc, verbose)
 		}
 	}
+	
+	log.Printf("worker #%d indexed %d documents\n", id, documentsIndexed)
 }

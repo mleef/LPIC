@@ -16,13 +16,13 @@ func WriteOutput(filePath string, ind *InvertedIndex) {
     } else {
     	defer f.Close()
     	log.Printf("Writing output file %s", filePath)
-    	f.WriteString(toJson(ind))
+    	f.WriteString(toJSON(ind))
     }
 
 }
 
 // Serializes index to JSON format
-func toJson(ind *InvertedIndex) string {
+func toJSON(ind *InvertedIndex) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{\n")
 	for term, termEntry := range ind.Terms {

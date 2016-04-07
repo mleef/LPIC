@@ -233,10 +233,10 @@ func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry
 	//log.Printf("Working on file %s", path)
 	// Open file for reading
 	file, scanner, err := OpenFile(path)
-	defer file.Close()
-
+	
 	// Something went wrong in opening the file
 	if err != nil {
+		file.Close()
 		return nil, err
 	}
 
@@ -262,9 +262,11 @@ func ReadFile(path string, docID int64, verbose bool) (map[string]*DocumentEntry
 
 	// Make sure the scanner didn't fail
 	if err := scanner.Err(); err != nil {
+		file.Close()
 		return termCounts, err
 	}
 
+	file.Close()
 	return termCounts, nil
 }
 

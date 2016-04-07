@@ -40,7 +40,7 @@ func main() {
 	go docindexing.CrawlFileSystem(documentPool, searchPath, &wg, *verboseOutput)
 
 	// Allow goroutines to start
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	// Wait until all goroutines finish
 	wg.Wait()
