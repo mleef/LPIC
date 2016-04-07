@@ -15,7 +15,6 @@ type Data struct {
 
 // Crawl the file system and add data to the work queue
 func CrawlFileSystem(workQueue chan *Data, root string, wg *sync.WaitGroup, verbose bool) {
-	wg.Add(1)
 	defer wg.Done()
 	ID := int64(0)
 

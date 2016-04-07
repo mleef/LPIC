@@ -36,11 +36,9 @@ func main() {
 
 	// Commence crawling and index construction
 	log.Println("Beginning crawl and index construction...")
+	wg.Add(*numWorkers + 1)
 	go worker.SpawnWorkers(documentPool, *numWorkers, ind, &wg, *verboseOutput)
 	go docindexing.CrawlFileSystem(documentPool, searchPath, &wg, *verboseOutput)
-
-	// Allow goroutines to start
-	time.Sleep(500 * time.Millisecond)
 
 	// Wait until all goroutines finish
 	wg.Wait()

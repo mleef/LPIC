@@ -55,10 +55,16 @@ func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verb
 	if verbose {
 		log.Printf("Adding new document %s to term %s's document list", document.Path, term)
 	}
-	// Safely add document to term list
+	// Get index and term locks
+	ind.IndexLock.Lock();
 	ind.Terms[term].EntryLock.Lock()
+	
+	// Safely update values
 	ind.Terms[term].Frequency += document.Frequency
 	ind.Terms[term].Documents = append(ind.Terms[term].Documents, document)
+	
+	// Release locks
 	ind.Terms[term].EntryLock.Unlock()
+	ind.IndexLock.Unlock()
 	runtime.Gosched()
 }

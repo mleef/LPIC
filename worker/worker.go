@@ -11,7 +11,6 @@ func SpawnWorkers(workQueue chan *docindexing.Data, numWorkers int, ind *docinde
 
 	// spawn workers
 	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
 		if verbose {
 			log.Printf("Spawning worker %d...\n", i)
 		}
