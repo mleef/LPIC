@@ -46,6 +46,13 @@ func main() {
 	// Calculate time elapsed
 	log.Printf("Finished building index in %s", time.Since(start))
 	
+	
+	log.Printf("Sorting document lists for query optimization...")
+	// Start timing
+	start = time.Now()
+	ind.SortDocumentLists()
+	log.Printf("Finished sorting documents in %s", time.Since(start))
+	
 	// Write index to file in JSON format
 	docindexing.WriteOutput(*outputDir + *outputFile, ind)
 

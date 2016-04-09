@@ -13,18 +13,21 @@ type InvertedIndex struct {
 	IndexLock *sync.Mutex
 }
 
-// Stores terms and their respective document entries
-type TermEntry struct {
-	Frequency int
-	Documents []*DocumentEntry
-}
-
 // Stores document metadata as well as additional term information
 type DocumentEntry struct {
 	Path      string
 	ID        int64
 	Frequency int
 	Positions []int
+}
+
+// Document slice type for sorting
+type DocumentEntries []*DocumentEntry
+
+// Stores terms and their respective document entries
+type TermEntry struct {
+	Frequency int
+	Documents DocumentEntries
 }
 
 // Constructs new inverted index

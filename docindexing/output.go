@@ -23,6 +23,8 @@ func WriteOutput(filePath string, ind *InvertedIndex) {
 
 // Serializes index to JSON format
 func toJSON(ind *InvertedIndex) string {
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
 	var buffer bytes.Buffer
 	buffer.WriteString("{\n")
 	for term, termEntry := range ind.Terms {
