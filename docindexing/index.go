@@ -10,6 +10,7 @@ import (
 type InvertedIndex struct {
 	Terms     map[string]*TermEntry
 	TermCount int64
+	DocCount  int64
 	IndexLock *sync.Mutex
 }
 
@@ -63,6 +64,7 @@ func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verb
 	// Safely update values
 	ind.Terms[term].Frequency += document.Frequency
 	ind.Terms[term].Documents = append(ind.Terms[term].Documents, document)
+	ind.DocCount++
 	
 	// Release lock
 	ind.IndexLock.Unlock()

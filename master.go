@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"github.com/mleef/lpic/docindexing"
+	//"github.com/mleef/lpic/querying"
 	"github.com/mleef/lpic/worker"
 	"runtime"
 	"sync"
@@ -11,6 +12,10 @@ import (
 )
 
 func main() {
+	buildIndex()
+}
+
+func buildIndex() {
 	// Optional flags and defaults
     var numWorkers = flag.Int("num-workers", runtime.GOMAXPROCS(runtime.NumCPU()), "number of worker threads")
     var verboseOutput = flag.Bool("verbose", false, "print verbose progress")
