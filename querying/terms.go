@@ -3,6 +3,7 @@ package querying
 import (
 	"github.com/mleef/lpic/docindexing"
 	"math"
+	"runtime"
 )
 
 
@@ -10,6 +11,7 @@ import (
 func GetDocuments(ind *docindexing.InvertedIndex, term string) docindexing.DocumentEntries {
 	ind.IndexLock.Lock()
 	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
 	
 	// Return document list of term if its in the index
 	if termEntry, found := ind.Terms[term]; found {
@@ -20,39 +22,23 @@ func GetDocuments(ind *docindexing.InvertedIndex, term string) docindexing.Docum
 }
 
 // Calculates term frequency inverse document frequency of given term
-func TFIDF(ind *docindexing.InvertedIndex, term string) float64 {
-	return rawTermFrequency(ind, term)*inverseDocumentFrequency(ind, term)
+func TFIDF(docCount int64, termEntry *docindexing.TermEntry, documentEntry *docindexing.DocumentEntry) float64 {
+	return rawTermFrequency(documentEntry)*inverseDocumentFrequency(docCount, termEntry)
 }
 
 // Inverse document frequency of given term
-func inverseDocumentFrequency(ind *docindexing.InvertedIndex, term string) float64 {
-	ind.IndexLock.Lock()
-	defer ind.IndexLock.Unlock()
-		
-	// Return document list of term if its in the index
-	if termEntry, found := ind.Terms[term]; found {
-		return math.Log(float64(ind.DocCount)/float64(len(termEntry.Documents)))
-	} else {
-		return 0.0
-	}
+func inverseDocumentFrequency(docCount int64, termEntry *docindexing.TermEntry) float64 {
+	return math.Log(float64(docCount)/float64(len(termEntry.Documents)))
 }
 
 // Gets frequency of given term
-func rawTermFrequency(ind *docindexing.InvertedIndex, term string) float64 {
-	ind.IndexLock.Lock()
-	defer ind.IndexLock.Unlock()
-	
-	// Return document list of term if its in the index
-	if termEntry, found := ind.Terms[term]; found {
-		return float64(termEntry.Frequency)
-	} else {
-		return 0
-	}
+func rawTermFrequency(documentEntry *docindexing.DocumentEntry) float64 {
+		return float64(documentEntry.Frequency)
 }
 
 // Binary frequency
-func binaryTermFrequency(ind *docindexing.InvertedIndex, term string) int {
-	freq := rawTermFrequency(ind, term)
+func binaryTermFrequency(documentEntry *docindexing.DocumentEntry) int {
+	freq := rawTermFrequency(documentEntry)
 	if freq > 0 {
 		return 1
 	} else {
@@ -61,8 +47,8 @@ func binaryTermFrequency(ind *docindexing.InvertedIndex, term string) int {
 }
 
 // Log normalized frequency
-func logNormalizedTermFrequency(ind *docindexing.InvertedIndex, term string) float64 {
-	freq := rawTermFrequency(ind, term)
+func logNormalizedTermFrequency(documentEntry *docindexing.DocumentEntry) float64 {
+	freq := rawTermFrequency(documentEntry)
 	if freq != 0 {
 		return math.Log(freq)
 	} else {

@@ -44,7 +44,7 @@ func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
 		if verbose {
 			log.Printf("Adding new term %s to index", term)
 		}
-		ind.Terms[term] = &TermEntry{Frequency: 0, Documents: make([]*DocumentEntry, 0)}
+		ind.Terms[term] = &TermEntry{Frequency: 0, Documents: make(DocumentEntries, 0)}
 		ind.TermCount++
 	}
 	ind.IndexLock.Unlock()
@@ -69,4 +69,21 @@ func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verb
 	// Release lock
 	ind.IndexLock.Unlock()
 	runtime.Gosched()
+}
+
+// Checks if a term occurs was found in a given document
+func (ind *InvertedIndex) TermInDocument(term string, id int64) (*TermEntry, bool) {
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
+	if termEntry, found := ind.Terms[term]; found {
+		for _, documentEntry := range termEntry.Documents {
+			if documentEntry.ID == id {
+				return termEntry, true
+			}
+		}
+	}
+	
+	return nil, false
+
 }

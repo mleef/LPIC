@@ -6,6 +6,7 @@ import (
 	"os"
 	"log"
 	"strings"
+	"runtime"
 )
 
 // Writes serialized index to a specified file
@@ -25,6 +26,7 @@ func WriteOutput(filePath string, ind *InvertedIndex) {
 func toJSON(ind *InvertedIndex) string {
 	ind.IndexLock.Lock()
 	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
 	var buffer bytes.Buffer
 	buffer.WriteString("{\n")
 	for term, termEntry := range ind.Terms {

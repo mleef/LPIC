@@ -59,6 +59,17 @@ func buildIndex() {
 	log.Printf("Finished sorting documents in %s", time.Since(start))
 	
 	// Write index to file in JSON format
+	start = time.Now()
 	docindexing.WriteOutput(*outputDir + *outputFile, ind)
+	log.Printf("Finished writing output in %s", time.Since(start))
+	
+	// Query example
+	//terms := make([]string, 2)
+	//terms[0] = "monsters"
+	//terms[1] = "host"
+	
+	//for _, result := range querying.Query(ind, terms, 10) {
+	//	log.Printf("%s: %f", result.Document.Path, result.Score)
+	//}
 
 }
