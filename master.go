@@ -28,8 +28,8 @@ func main() {
 	flag.Parse()
 	
 	// Validate argument length
-	if len(flag.Args()) > 2 || len(flag.Args()) == 0 {
-		log.Fatal("Incorrect number of arguments")
+	if len(flag.Args()) != 2 {
+		log.Fatal("Incorrect number of arguments (2 expected)")
 	}
 	// Get search starting point from args
 	action := flag.Args()[0]
