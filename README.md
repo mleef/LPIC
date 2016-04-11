@@ -2,7 +2,7 @@
 
 Leveraging Go's concurrency features for efficient inverted index construction and interactive querying.
 
-## usage
+## Usage
 
 Simply make to build:
 ```bash
