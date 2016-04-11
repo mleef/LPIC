@@ -1,11 +1,8 @@
 package querying
 
 import (
-	"container/heap"
 	"sort"
 	"github.com/mleef/lpic/docindexing"
-	"log"
-
 )
 
 
@@ -41,7 +38,6 @@ func (slice QueryResults) Swap(i, j int) {
 
 // Queries index with given query terms
 func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int) QueryResults {
-	log.Printf("Executing with %d term query...", len(queryTerms))
 	docList := make([]*docindexing.DocumentEntry, 0)
 	numDocs := 0
 	i := 0
