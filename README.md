@@ -37,5 +37,5 @@ Usage of lpic:
 ./lpic [optional flags] query [generated .lpic index file]
 ```
 
-## license 
+## License 
 MIT (see [LICENSE](https://github.com/mleef/LPIC/blob/master/LICENSE) file)
