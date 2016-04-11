@@ -12,14 +12,6 @@ type QueryResult struct {
 	Document	*docindexing.DocumentEntry
 }
 
-// An Item is something we manage in a priority queue.
-type Item struct {
-	value    *docindexing.DocumentEntry 
-	sourceList	int
-	priority int64    // The priority of the item in the queue.
-	index int // The index of the item in the heap.
-}
-
 // Query result slice type for sorting
 type QueryResults []*QueryResult
 
