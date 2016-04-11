@@ -20,7 +20,7 @@ Usage of lpic:
   -num-workers int
     	number of worker threads (default 4)
   -out-dir string
-    	destination directory for constructed index (default "./")
+    	destination directory of constructed index (default "./")
   -out-file string
     	file name of constructed index (default "index")
   -verbose
