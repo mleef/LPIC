@@ -16,12 +16,12 @@ func main() {
     var numWorkers = flag.Int("num-workers", runtime.GOMAXPROCS(runtime.NumCPU()), "number of worker threads")
     var json = flag.Bool("json", false, "generate additional JSON formatted index file")
     var verboseOutput = flag.Bool("verbose", false, "print verbose progress")
-    var outputDir = flag.String("out-dir", "./", "destination directory for constructed index")
+    var outputDir = flag.String("out-dir", "./", "destination directory of constructed index")
     var outputFile = flag.String("out-file", "index", "file name of constructed index")
     
     // Optional flags and defaults for index querying
     var numResults = flag.Int("num-results", 5, "number of query results to show")
-    var normalizedTF = flag.Bool("norm-tf", false, "log normalize raw term frequency")
+    var rawTF = flag.Bool("raw-tf", false, "use raw term frequency instead of log normalized")
     
 
 	// Get flags
@@ -38,7 +38,7 @@ func main() {
 	if action == "build" {
 		BuildIndex(path, *numWorkers, *json, *outputDir, *outputFile, *verboseOutput)
 	} else if action == "query" {
-		QueryIndex(path, *numResults, *normalizedTF)
+		QueryIndex(path, *numResults, *rawTF)
 	} else {
 		log.Fatal("Unknown command")
 	}
@@ -91,11 +91,11 @@ func BuildIndex(searchPath string, numWorkers int, json bool, outputDir string, 
 }
 
 // Start query session using given parameters
-func QueryIndex(filePath string, numResults int, normalizedTF bool) {
+func QueryIndex(filePath string, numResults int, rawTF bool) {
 	ind := docindexing.ReadOutput(filePath)
 	if ind == nil {
 		log.Fatal("Error building index")
 	} else {
-		querying.InteractiveSearch(ind, numResults)
+		querying.InteractiveSearch(ind, numResults, rawTF)
 	}
 }

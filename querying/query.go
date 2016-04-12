@@ -29,7 +29,7 @@ func (slice QueryResults) Swap(i, j int) {
 }
 
 // Queries index with given query terms
-func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int) QueryResults {
+func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int, rawTF bool) QueryResults {
 	docList := make([]*docindexing.DocumentEntry, 0)
 	numDocs := 0
 	i := 0
@@ -54,7 +54,7 @@ func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int) 
 	result := make(QueryResults, numDocs)
 	i = 0
 	for _, documentEntry := range docList {
-		result[i] = scoreDocument(ind, queryTerms, documentEntry)
+		result[i] = scoreDocument(ind, queryTerms, documentEntry, rawTF)
 		i++
 	}
 	// Sort results by score and return given number of results
@@ -67,13 +67,13 @@ func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int) 
 }
 
 // Calculate the score for a given document given list of query terms
-func scoreDocument(ind *docindexing.InvertedIndex, queryTerms []string, documentEntry *docindexing.DocumentEntry) *QueryResult {
+func scoreDocument(ind *docindexing.InvertedIndex, queryTerms []string, documentEntry *docindexing.DocumentEntry, rawTF bool) *QueryResult {
 	score := float64(0)
 	
 	// Check if each term appeared in given document and if so add score
 	for _, term := range queryTerms {
 		if termEntry, found := ind.TermInDocument(term, documentEntry.ID); found {
-			score += TFIDF(ind.DocCount, termEntry, documentEntry)
+			score += TFIDF(ind.DocCount, termEntry, documentEntry, rawTF)
 		}
 	}
 	

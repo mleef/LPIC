@@ -9,7 +9,7 @@ import (
 )
 
 // Shell like interaction for querying index
-func InteractiveSearch(ind *docindexing.InvertedIndex, numResults int) {
+func InteractiveSearch(ind *docindexing.InvertedIndex, numResults int, rawTF bool) {
 	reader := bufio.NewReader(os.Stdin)
 	// Read user input and execute given queries
 	var results QueryResults
@@ -25,9 +25,9 @@ func InteractiveSearch(ind *docindexing.InvertedIndex, numResults int) {
 			if len(querySplit) == 0 {
 				singleQuery := make([]string, 1)
 				singleQuery[0] = query
-				results = Query(ind, singleQuery, numResults)
+				results = Query(ind, singleQuery, numResults, rawTF)
 			} else {
-				results = Query(ind, querySplit, numResults)
+				results = Query(ind, querySplit, numResults, rawTF)
 			}
 		}
 		

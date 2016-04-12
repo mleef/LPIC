@@ -22,13 +22,17 @@ func GetDocuments(ind *docindexing.InvertedIndex, term string) docindexing.Docum
 }
 
 // Calculates term frequency inverse document frequency of given term
-func TFIDF(docCount int64, termEntry *docindexing.TermEntry, documentEntry *docindexing.DocumentEntry) float64 {
-	return rawTermFrequency(documentEntry)*inverseDocumentFrequency(docCount, termEntry)
+func TFIDF(docCount int64, termEntry *docindexing.TermEntry, documentEntry *docindexing.DocumentEntry, rawTF bool) float64 {
+	if rawTF {
+		return rawTermFrequency(documentEntry)*inverseDocumentFrequency(docCount, termEntry)
+	} else {
+		return logNormalizedTermFrequency(documentEntry)*inverseDocumentFrequency(docCount, termEntry)
+	}
 }
 
 // Inverse document frequency of given term
 func inverseDocumentFrequency(docCount int64, termEntry *docindexing.TermEntry) float64 {
-	return math.Log(float64(docCount)/float64(len(termEntry.Documents)))
+	return math.Log(1 + (float64(docCount)/float64(len(termEntry.Documents))))
 }
 
 // Gets frequency of given term
