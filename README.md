@@ -39,12 +39,12 @@ Usage of lpic:
 
 ### Index Construction
 ```bash
-./lpic [optional flags] build [required target root directory to crawl]
+lpic [optional flags] build [required target root directory to crawl]
 ```
 
 ### Index Querying
 ```bash
-./lpic [optional flags] query [required generated .lpic index file]
+lpic [optional flags] query [required generated .lpic index file]
 ```
 
 ## License 
