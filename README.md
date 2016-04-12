@@ -4,9 +4,19 @@ Leveraging Go's concurrency features for efficient inverted index construction a
 
 ## Usage
 
-Simply make to build:
+Simply get the package:
+```bash
+go get github.com/mleef/lpic
+```
+
+and then either make to build:
 ```bash
 make
+```
+
+or install the binary directly:
+```bash
+go install github.com/mleef/lpic
 ```
 ### Flags
 ```bash
