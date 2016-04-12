@@ -13,8 +13,8 @@ make
 Usage of lpic:
   -json
     	generate additional JSON formatted index file
-  -norm-tf
-    	log normalize raw term frequency
+  -raw-tf
+    	use raw term frequency instead of log norm
   -num-results int
     	number of query results to show (default 5)
   -num-workers int

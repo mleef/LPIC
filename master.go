@@ -21,7 +21,7 @@ func main() {
     
     // Optional flags and defaults for index querying
     var numResults = flag.Int("num-results", 5, "number of query results to show")
-    var rawTF = flag.Bool("raw-tf", false, "use raw term frequency instead of log normalized")
+    var rawTF = flag.Bool("raw-tf", false, "use raw term frequency instead of log norm")
     
 
 	// Get flags
