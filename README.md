@@ -34,7 +34,7 @@ Usage of lpic:
 
 ### Index Querying
 ```bash
-./lpic [optional flags] query [generated .lpic index file]
+./lpic [optional flags] query [required generated .lpic index file]
 ```
 
 ## License 
