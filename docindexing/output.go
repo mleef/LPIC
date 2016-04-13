@@ -116,9 +116,10 @@ func toJSON(ind *InvertedIndex) string {
 // Read in LPIC format and return constructed index
 func fromLPIC(file *os.File) *InvertedIndex {
 	ind := NewIndex()
-	scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        line := strings.Split(scanner.Text(), ",")
+	reader := bufio.NewReader(file)
+	rawLine, err := reader.ReadString('\n')
+    for err == nil {
+        line := strings.Split(rawLine, ",")
         term := line[0]
         ind.AddTerm(term, false)
         for _, document := range line[2:] {
@@ -139,8 +140,8 @@ func fromLPIC(file *os.File) *InvertedIndex {
         		ind.AddDocument(term, &DocumentEntry{path, int64(id), frequency, positions}, false)
         	}
         }
+        rawLine, err = reader.ReadString('\n')
     }
-	
 	
 	return ind
 }

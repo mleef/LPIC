@@ -29,14 +29,13 @@ func (slice QueryResults) Swap(i, j int) {
 }
 
 // Queries index with given query terms
-func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int, rawTF bool) QueryResults {
+func Query(ind *docindexing.InvertedIndex, queryTerms []string, numWorkers int, numResults int, rawTF bool) QueryResults {
 	docList := make([]*docindexing.DocumentEntry, 0)
 	numDocs := 0
-	i := 0
 	
 	encountered := map[int64]bool{}
 	
-	// Collect all document lists from query terms
+	// Collect all document lists from query terms and filter out duplicates
 	for _, term := range queryTerms {
 		newDocs := GetDocuments(ind, term)
 		if len(newDocs) > 0 {
@@ -50,33 +49,48 @@ func Query(ind *docindexing.InvertedIndex, queryTerms []string, numResults int, 
 		}		
 	}
 
-	// Calculate scores for each document
-	result := make(QueryResults, numDocs)
-	i = 0
-	for _, documentEntry := range docList {
-		result[i] = scoreDocument(ind, queryTerms, documentEntry, rawTF)
-		i++
+	// To dispatch work
+	low := 0
+	step := numDocs/numWorkers
+	high := low + step
+	resultChan := make(chan *QueryResult)
+	results := make(QueryResults, numDocs)
+	
+	// Spawn workers for concurrent scoring
+	for i := 0; i < numWorkers; i++ {
+		if i == numWorkers - 1 {
+			high = len(docList)
+		}
+		go scoreDocument(ind, queryTerms, resultChan, docList[low:high], rawTF)
+		low = high
+		high += step
 	}
+
+	// Get results from workers
+	for i := 0; i < numDocs; i++ {
+		results[i] = <- resultChan
+	}
+
 	// Sort results by score and return given number of results
-	sort.Sort(result)
-	if(len(result) > numResults) {
-		return result[:numResults]	
+	sort.Sort(results)
+	if(len(results) > numResults) {
+		return results[:numResults]	
 	}
-	return result
+	
+	return results
 	
 }
 
 // Calculate the score for a given document given list of query terms
-func scoreDocument(ind *docindexing.InvertedIndex, queryTerms []string, documentEntry *docindexing.DocumentEntry, rawTF bool) *QueryResult {
-	score := float64(0)
-	
-	// Check if each term appeared in given document and if so add score
-	for _, term := range queryTerms {
-		if termEntry, found := ind.TermInDocument(term, documentEntry.ID); found {
-			score += TFIDF(ind.DocCount, termEntry, documentEntry, rawTF)
+func scoreDocument(ind *docindexing.InvertedIndex, queryTerms []string, resultChan chan *QueryResult, documentEntries []*docindexing.DocumentEntry, rawTF bool) {	
+	for _, documentEntry := range documentEntries {
+		score := float64(0)
+		// Check if each term appeared in given document and if so add score
+		for _, term := range queryTerms {
+			if termEntry, found := ind.TermInDocument(term, documentEntry.ID); found {
+				score += TFIDF(ind.DocCount, termEntry, documentEntry, rawTF)
+			}
 		}
+		resultChan <- &QueryResult{Score: score, Document: documentEntry}
 	}
-	
-	return &QueryResult{Score: score, Document: documentEntry}
-	
 }

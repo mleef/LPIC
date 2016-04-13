@@ -31,6 +31,12 @@ func main() {
 	if len(flag.Args()) != 2 {
 		log.Fatal("Incorrect number of arguments (2 expected)")
 	}
+	
+	// Validate worker amount
+	if *numWorkers < 1 {
+		log.Fatal("Worker count cannot be less than 1")
+	}
+	
 	// Get search starting point from args
 	action := flag.Args()[0]
 	path := flag.Args()[1]
@@ -38,7 +44,7 @@ func main() {
 	if action == "build" {
 		BuildIndex(path, *numWorkers, *json, *outputDir, *outputFile, *verboseOutput)
 	} else if action == "query" {
-		QueryIndex(path, *numResults, *rawTF)
+		QueryIndex(path, *numWorkers, *numResults, *rawTF)
 	} else {
 		log.Fatal("Unknown command")
 	}
@@ -91,11 +97,13 @@ func BuildIndex(searchPath string, numWorkers int, json bool, outputDir string, 
 }
 
 // Start query session using given parameters
-func QueryIndex(filePath string, numResults int, rawTF bool) {
+func QueryIndex(filePath string, numWorkers int, numResults int, rawTF bool) {
+	start := time.Now()
 	ind := docindexing.ReadOutput(filePath)
+	log.Printf("Finished rebuilding index in %s", time.Since(start))
 	if ind == nil {
 		log.Fatal("Error building index")
 	} else {
-		querying.InteractiveSearch(ind, numResults, rawTF)
+		querying.InteractiveSearch(ind, numWorkers, numResults, rawTF)
 	}
 }

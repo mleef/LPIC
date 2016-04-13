@@ -6,10 +6,11 @@ import (
 	"os"
 	"bufio"
 	"strings"
+	"time"
 )
 
 // Shell like interaction for querying index
-func InteractiveSearch(ind *docindexing.InvertedIndex, numResults int, rawTF bool) {
+func InteractiveSearch(ind *docindexing.InvertedIndex, numWorkers int, numResults int, rawTF bool) {
 	reader := bufio.NewReader(os.Stdin)
 	// Read user input and execute given queries
 	var results QueryResults
@@ -22,13 +23,16 @@ func InteractiveSearch(ind *docindexing.InvertedIndex, numResults int, rawTF boo
 			os.Exit(0)
 		} else {
 			querySplit := strings.Split(query, " ")
+			// Start timing
+			start := time.Now()
 			if len(querySplit) == 0 {
 				singleQuery := make([]string, 1)
 				singleQuery[0] = query
-				results = Query(ind, singleQuery, numResults, rawTF)
+				results = Query(ind, singleQuery, numWorkers, numResults, rawTF)
 			} else {
-				results = Query(ind, querySplit, numResults, rawTF)
+				results = Query(ind, querySplit, numWorkers, numResults, rawTF)
 			}
+			fmt.Printf("Query time: %s\n", time.Since(start))
 		}
 		
 		// Print results
