@@ -26,14 +26,14 @@ func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedI
 	// While channel is open consume data
 	for data := range workQueue {
 		if verbose {
-			log.Printf("worker #%d: item %s\n", id, data.Document)
+			log.Printf("Worker #%d: item %s\n", id, data.Document)
 		}
 		
 		// Parse file and check for errors
 		result, err := docindexing.ReadFile(data.Document, data.ID, verbose)
 		if err != nil {
 			if verbose {
-				log.Printf("worker #%d error: %s\n", id, err)
+				log.Printf("Worker #%d error: %s\n", id, err)
 			}
 			continue
 		}
@@ -47,5 +47,5 @@ func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedI
 		}
 	}
 	
-	log.Printf("worker #%d indexed %d documents\n", id, documentsIndexed)
+	log.Printf("Worker #%d indexed %d documents\n", id, documentsIndexed)
 }

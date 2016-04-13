@@ -3,6 +3,7 @@ package querying
 import (
 	"sort"
 	"github.com/mleef/lpic/docindexing"
+	"fmt"
 )
 
 
@@ -48,12 +49,14 @@ func Query(ind *docindexing.InvertedIndex, queryTerms []string, numWorkers int, 
 			}
 		}		
 	}
+	
+	fmt.Printf("Scoring %d matching documents...\n", numDocs)
 
 	// To dispatch work
 	low := 0
 	step := numDocs/numWorkers
 	high := low + step
-	resultChan := make(chan *QueryResult)
+	resultChan := make(chan *QueryResult, numDocs)
 	results := make(QueryResults, numDocs)
 	
 	// Spawn workers for concurrent scoring

@@ -28,7 +28,7 @@ Usage of lpic:
   -num-results int
     	number of query results to show (default 5)
   -num-workers int
-    	number of worker threads (default 4)
+    	number of worker threads (default is number of cores on your machine)
   -out-dir string
     	destination directory of constructed index (default "./")
   -out-file string

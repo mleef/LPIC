@@ -59,7 +59,7 @@ func BuildIndex(searchPath string, numWorkers int, json bool, outputDir string, 
 	// Initialize needed structures
 	log.Println("Initializing index and document pool...")
 	ind := docindexing.NewIndex()
-	documentPool := make(chan *docindexing.Data)
+	documentPool := make(chan *docindexing.Data, 100000)
 
 	// Start timing
 	start := time.Now()
