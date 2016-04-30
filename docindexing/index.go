@@ -73,6 +73,8 @@ func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verb
 
 // Checks if a term occurs was found in a given document
 func (ind *InvertedIndex) TermInDocument(term string, id int64) (*TermEntry, bool) {
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
 	if termEntry, found := ind.Terms[term]; found {
 		for _, documentEntry := range termEntry.Documents {
 			if documentEntry.ID == id {

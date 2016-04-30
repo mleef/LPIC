@@ -2,7 +2,6 @@ package docindexing
 
 import (
 	"fmt"
-	"bytes"
 	"os"
 	"log"
 	"strings"
@@ -20,9 +19,9 @@ func WriteOutput(filePath string, ind *InvertedIndex, jsonFormat bool) {
     	defer f.Close()
     	log.Printf("Writing output file %s", filePath)
     	if jsonFormat {
-    		f.WriteString(toJSON(ind))
+    		toJSON(f, ind)
     	} else {
-    		f.WriteString(toLPIC(ind))
+    		toLPIC(f, ind)
     	}
     }
 
@@ -43,74 +42,68 @@ func ReadOutput(filePath string) *InvertedIndex {
 }
 
 // Serializes index to LPIC format
-func toLPIC(ind *InvertedIndex) string {
+func toLPIC(file *os.File, ind *InvertedIndex) {
 	ind.IndexLock.Lock()
 	defer ind.IndexLock.Unlock()
 	defer runtime.Gosched()
-	var buffer bytes.Buffer
 
 	for term, termEntry := range ind.Terms {
-		buffer.WriteString(fmt.Sprintf("%s,%d,", term, termEntry.Frequency))
+		file.WriteString(fmt.Sprintf("%s,%d,", term, termEntry.Frequency))
 		for index, docEntry := range termEntry.Documents {
-			buffer.WriteString(fmt.Sprintf("%d %s %d ", docEntry.ID, docEntry.Path, docEntry.Frequency))
+			file.WriteString(fmt.Sprintf("%d %s %d ", docEntry.ID, docEntry.Path, docEntry.Frequency))
 			for posInd, pos := range docEntry.Positions {
 				if posInd == len(docEntry.Positions) - 1 {
-					buffer.WriteString(fmt.Sprintf("%d", pos))
+					file.WriteString(fmt.Sprintf("%d", pos))
 				} else {
-					buffer.WriteString(fmt.Sprintf("%d-", pos))
+					file.WriteString(fmt.Sprintf("%d-", pos))
 				}
 			}
 			if index == len(termEntry.Documents) - 1 {
-				buffer.WriteString("\n")
+				file.WriteString("\n")
 			} else {
-				buffer.WriteString(",")
+				file.WriteString(",")
 			}
 		}
-	}
-
-	
-	return buffer.String()
+	}	
 }
 
 // Serializes index to JSON format
-func toJSON(ind *InvertedIndex) string {
+func toJSON(file *os.File, ind *InvertedIndex) {
 	ind.IndexLock.Lock()
 	defer ind.IndexLock.Unlock()
 	defer runtime.Gosched()
-	var buffer bytes.Buffer
-	buffer.WriteString("{\n")
+	
+	file.WriteString("{\n")
 	for term, termEntry := range ind.Terms {
-		buffer.WriteString(fmt.Sprintf("\t%q : {\n", term))
-		buffer.WriteString(fmt.Sprintf("\t\t%q : %d,\n", "frequency", termEntry.Frequency))
-		buffer.WriteString(fmt.Sprintf("\t\t%q : [\n", "documents"))
+		file.WriteString(fmt.Sprintf("\t%q : {\n", term))
+		file.WriteString(fmt.Sprintf("\t\t%q : %d,\n", "frequency", termEntry.Frequency))
+		file.WriteString(fmt.Sprintf("\t\t%q : [\n", "documents"))
 		for numDoc, docEntry := range termEntry.Documents {
-			buffer.WriteString("\t\t\t{\n")
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "id", docEntry.ID))
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %q,\n", "path", docEntry.Path))
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "frequency", docEntry.Frequency))
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t%q : [\n", "positions"))
+			file.WriteString("\t\t\t{\n")
+			file.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "id", docEntry.ID))
+			file.WriteString(fmt.Sprintf("\t\t\t\t%q : %q,\n", "path", docEntry.Path))
+			file.WriteString(fmt.Sprintf("\t\t\t\t%q : %d,\n", "frequency", docEntry.Frequency))
+			file.WriteString(fmt.Sprintf("\t\t\t\t%q : [\n", "positions"))
 			for index, pos := range docEntry.Positions {
 				if index != len(docEntry.Positions) - 1 {
-					buffer.WriteString(fmt.Sprintf("\t\t\t\t\t%d,\n", pos))
+					file.WriteString(fmt.Sprintf("\t\t\t\t\t%d,\n", pos))
 				} else {
-					buffer.WriteString(fmt.Sprintf("\t\t\t\t\t%d\n", pos))
+					file.WriteString(fmt.Sprintf("\t\t\t\t\t%d\n", pos))
 				}
 			}
-			buffer.WriteString(fmt.Sprintf("\t\t\t\t]\n"))
+			file.WriteString(fmt.Sprintf("\t\t\t\t]\n"))
 			
 			if numDoc != len(termEntry.Documents) - 1 {
-				buffer.WriteString("\t\t\t},\n")
+				file.WriteString("\t\t\t},\n")
 			} else {
-				buffer.WriteString("\t\t\t}\n")
+				file.WriteString("\t\t\t}\n")
 			}
 		}
-		buffer.WriteString(fmt.Sprintf("\t\t]\n"))
-		buffer.WriteString("\t},\n")
+		file.WriteString(fmt.Sprintf("\t\t]\n"))
+		file.WriteString("\t},\n")
 	}
-	result := strings.TrimSuffix(buffer.String(), ",\n")
-	result += "\n}\n"
-	
-	return result
+	file.Seek(-2, 2)
+	file.WriteString("\n}\n")	
 }
 
 // Read in LPIC format and return constructed index
