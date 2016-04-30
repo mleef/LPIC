@@ -42,9 +42,7 @@ func Worker(id int, workQueue chan *docindexing.Data, ind *docindexing.InvertedI
 		documentsIndexed++
 
 		// File parsing was successful so update index
-		for term, doc := range result {
-			ind.AddDocument(term, doc, verbose)
-		}
+		ind.AddDocuments(result, verbose)
 	}
 	
 	log.Printf("Worker #%d indexed %d documents\n", id, documentsIndexed)

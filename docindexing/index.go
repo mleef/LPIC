@@ -37,8 +37,7 @@ func NewIndex() *InvertedIndex {
 }
 
 // Adds new term entry to the index
-func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
-	ind.IndexLock.Lock()
+func (ind *InvertedIndex) addTerm(term string, verbose bool) {
 	// Make sure we aren't overwriting existing term
 	if _, found := ind.Terms[term]; !found {
 		if verbose {
@@ -47,34 +46,60 @@ func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
 		ind.Terms[term] = &TermEntry{Frequency: 0, Documents: make(DocumentEntries, 0)}
 		ind.TermCount++
 	}
-	ind.IndexLock.Unlock()
-	runtime.Gosched()
 }
 
 // Adds new document entry to given term entry
-func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verbose bool) {
+func (ind *InvertedIndex) addDocument(term string, document *DocumentEntry, verbose bool) {
 	// Make sure term is in index
-	ind.AddTerm(term, verbose)
+	ind.addTerm(term, verbose)
 	if verbose {
 		log.Printf("Adding new document %s to term %s's document list", document.Path, term)
 	}
-	// Get index lock
-	ind.IndexLock.Lock()
 	
 	// Safely update values
 	ind.Terms[term].Frequency += document.Frequency
 	ind.Terms[term].Documents = append(ind.Terms[term].Documents, document)
 	ind.DocCount++
+}
+
+
+// Public method for adding terms
+func (ind *InvertedIndex) AddDocument(term string, document *DocumentEntry, verbose bool) {
+	// Get index lock
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
 	
-	// Release lock
-	ind.IndexLock.Unlock()
-	runtime.Gosched()
+	ind.addDocument(term, document, verbose)
+}
+
+// Public method for adding documents
+func (ind *InvertedIndex) AddTerm(term string, verbose bool) {
+	// Get index lock
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
+	
+	ind.addTerm(term, verbose)
+}
+
+// Adds new document entry to given term entry
+func (ind *InvertedIndex) AddDocuments(result map[string]*DocumentEntry, verbose bool) {
+	// Get index lock
+	ind.IndexLock.Lock()
+	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
+	
+	for term, doc := range result {
+		ind.addDocument(term, doc, verbose)
+	}
 }
 
 // Checks if a term occurs was found in a given document
 func (ind *InvertedIndex) TermInDocument(term string, id int64) (*TermEntry, bool) {
 	ind.IndexLock.Lock()
 	defer ind.IndexLock.Unlock()
+	defer runtime.Gosched()
 	if termEntry, found := ind.Terms[term]; found {
 		for _, documentEntry := range termEntry.Documents {
 			if documentEntry.ID == id {
